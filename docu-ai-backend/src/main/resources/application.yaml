@@ -1,0 +1,92 @@
+spring:
+  application:
+    name: docu-ai-backend
+
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: false
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+      retries: 3
+      properties:
+        enable.idempotence: true
+        max.in.flight.requests.per.connection: 1
+        delivery.timeout.ms: 30000
+        linger.ms: 5
+        batch.size: 16384
+
+    consumer:
+      group-id: docuai-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      enable-auto-commit: false
+      properties:
+        max.poll.records: 10
+        session.timeout.ms: 30000
+        heartbeat.interval.ms: 10000
+
+    listener:
+      ack-mode: manual_immediate
+      concurrency: 1
+
+server:
+  port: ${PORT:6000}
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: 86400000
+
+groq:
+  api:
+    key: ${GROQ_API_KEY}
+    model: llama-3.3-70b-versatile
+    max-tokens: 1000
+
+cache:
+  ttl: 3600
+
+app:
+  upload:
+    dir: /tmp/uploads
+
+kafka:
+  topics:
+    document-upload: document-upload
+    dead-letter: document-upload.DLT
+    partitions: 1
+    replication-factor: 1
+
+logging:
+  level:
+    com.docuai: INFO
+    org.springframework.kafka: INFO
+    org.apache.kafka: WARN
